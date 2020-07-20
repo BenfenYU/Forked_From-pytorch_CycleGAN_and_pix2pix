@@ -36,7 +36,5 @@ class TrainOptions(BaseOptions):
         parser.add_argument('--lr_policy', type=str, default='linear', help='learning rate policy. [linear | step | plateau | cosine]')
         parser.add_argument('--lr_decay_iters', type=int, default=50, help='multiply by a gamma every lr_decay_iters iterations')
 
-        parser.add_argument('--pre_train_model', type=str,default=None, help='we can continue train this model after last training break, remember set both epoch_count and n_epochs')
-
         self.isTrain = True
         return parser

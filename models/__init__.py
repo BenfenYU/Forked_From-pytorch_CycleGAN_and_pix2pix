@@ -61,12 +61,9 @@ def create_model(opt):
         >>> from models import create_model
         >>> model = create_model(opt)
     """
-    if (opt.pre_train_model):
-
-    else:
-        # return model without initialization
-        model = find_model_using_name(opt.model)
-        # init model
-        instance = model(opt)
-        print("model [%s] was created" % type(instance).__name__)
+    # return model without initialization
+    model = find_model_using_name(opt.model)
+    # init model
+    instance = model(opt)
+    print("model [%s] was created" % type(instance).__name__)
     return instance
