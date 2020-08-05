@@ -4,6 +4,7 @@ datasets/
 checkpoints/
 build/
 dist/
+run_server.sh
 torch.egg-info/
 */**/__pycache__
 torch/version.py
