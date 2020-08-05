@@ -103,6 +103,7 @@ def get_transform(opt, params=None, grayscale=False, method=Image.BICUBIC, conve
         elif params['flip']:
             transform_list.append(transforms.Lambda(lambda img: __flip(img, params['flip'])))
 
+    # normalize input
     if convert:
         transform_list += [transforms.ToTensor()]
         if grayscale:

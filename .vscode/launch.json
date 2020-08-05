@@ -9,9 +9,9 @@
             "name": "Python: train.py",
             "type": "python",
             "request": "launch",
-            "program": "${workspaceFolder}/train.py",
+            "program": "train.py",
             "console": "integratedTerminal",
-            "args": ["--dataroot", "./datasets/facades_cycle_gan", "--name", "facades_cycle_gan", "--model", "cycle_gan","--pool_size" ,"50" ,"--no_dropout","--preprocess" ,"scale_width_and_crop" ,"--load_size" ,"256" ]
+            "args": ["--gpu_ids","0","--no_dropout"  ,"--no_flip","--preprocess", "resize","--save_epoch_freq","10","--n_epochs_decay","50","--n_epochs","50","--batch_size","4","--num_threads","4"]
         }
     ]
 }

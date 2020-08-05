@@ -63,6 +63,7 @@ def create_model(opt):
     """
     # return model without initialization
     model = find_model_using_name(opt.model)
+    #print(opt.model)
     # init model
     instance = model(opt)
     print("model [%s] was created" % type(instance).__name__)

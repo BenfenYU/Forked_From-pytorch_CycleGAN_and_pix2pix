@@ -67,6 +67,8 @@ class CycleGANModel(BaseModel):
         else:  # during test time, only load Gs
             self.model_names = ['G_A', 'G_B']
 
+        #print(self.model_names)
+
         # define networks (both Generators and discriminators)
         # The naming is different from those used in the paper.
         # Code (vs. paper): G_A (G), G_B (F), D_A (D_Y), D_B (D_X)

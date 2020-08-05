@@ -23,6 +23,9 @@ from options.train_options import TrainOptions
 from data import create_dataset
 from models import create_model
 from util.visualizer import Visualizer
+from torch.utils.tensorboard import SummaryWriter
+
+ "--gpu_ids   0   --no_dropout     --no_flip   --preprocess    resize   --save_epoch_freq   10   --n_epochs_decay   50   --n_epochs   50   --batch_size   8   --num_threads   4"
 
 if __name__ == '__main__':
     opt = TrainOptions().parse()   # get training options
