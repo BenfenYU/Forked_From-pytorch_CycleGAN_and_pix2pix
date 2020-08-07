@@ -281,7 +281,7 @@ class Visualizer():
         self.html.save()
 
     # losses: same format as |losses| of plot_current_losses
-    def print_current_losses(self, epoch, iters, losses, t_comp, t_data):
+    def print_current_losses(self, epoch, iters, losses, t_comp):
         """print current losses on console; also save the losses to the disk
 
         Parameters:
