@@ -1,10 +1,11 @@
 import numpy as np
-import os
+import os,torchvision
 import sys
 import ntpath
 import time
 from . import util, html
 from subprocess import Popen, PIPE
+from .html import HTML
 
 
 if sys.version_info[0] == 2:
@@ -27,10 +28,15 @@ def save_images(webpage, visuals, image_path, aspect_ratio=1.0, width=256):
     """
     image_dir = webpage.get_image_dir()
     short_path = ntpath.basename(image_path[0])
-    name = os.path.splitext(short_path)[0]
+    name = os.path.splitext(short_path)[0]#.replace('A','B')
+    number = name.split('_')[-1]
 
     webpage.add_header(name)
     ims, txts, links = [], [], []
+    # 添加目标图片（灰度图）
+    ims.append(os.path.join('testB',number + '.jpg'))
+    txts.append('source')
+    links.append(os.path.join('testB',number + '.jpg'))
 
     for label, im_data in visuals.items():
         im = util.tensor2im(im_data)
@@ -42,7 +48,7 @@ def save_images(webpage, visuals, image_path, aspect_ratio=1.0, width=256):
         links.append(image_name)
     webpage.add_images(ims, txts, links, width=width)
 
-
+'''
 class Visualizer():
     """This class includes several functions that can display/save images and print/save logging information.
 
@@ -219,3 +225,76 @@ class Visualizer():
         print(message)  # print the message
         with open(self.log_name, "a") as log_file:
             log_file.write('%s\n' % message)  # save the message
+
+'''
+
+from torch.utils.tensorboard import SummaryWriter
+from datetime import datetime
+import os
+
+class Visualizer():
+    
+    def __init__(self,model,name = "DeepFaceDrawing",default_dir = 'runs',display_architecture = False,display_in_train = True):
+        self.writer = SummaryWriter(os.path.join(default_dir,name + '_' + datetime.now().strftime("%Y-%m-%d_%H-%M-%S")))
+        self.model = model
+
+        if display_architecture:
+            self.inspect_model()
+        
+        if display_in_train:
+            p = os.path.join(self.model.save_dir,'display_in_train')
+            if not os.path.exists(p):
+                os.mkdir(p)
+            self.path_display_in_train = p
+            self.html = HTML(p, 'display_in_train_html')
+        
+                # create a logging file to store training losses
+        self.log_name = os.path.join(self.model.save_dir, 'loss_log.txt')
+        with open(self.log_name, "a") as log_file:
+            now = time.strftime("%c")
+            log_file.write('================ Training Loss (%s) ================\n' % now)
+    
+    def inspect_model(self):
+        self.writer.add_graph(self.model)
+
+    def plot_loss(self , n_iter, name = 'Loss/train'):
+        loss = self.model.get_current_losses()
+        if isinstance(loss,dict):
+            self.writer.add_scalars(name, loss, n_iter)
+        else:
+            self.writer.add_scalar(name, loss, n_iter)
+    
+    def display_current_results(self, epoch):
+        visual_im = self.model.get_current_visuals()
+        self.html.add_header('epoch ' + str(epoch))
+        ims, txts, links = [], [], []
+        for key in visual_im.keys():
+            link = os.path.join(self.path_display_in_train,'images',str(epoch) + '_' + key + '.jpg')
+            torchvision.utils.save_image(visual_im[key],link)
+
+            link = str(epoch) + '_' + key + '.jpg'
+            ims.append(link)
+            txts.append(key)
+            links.append(link)
+        
+        self.html.add_images(ims, txts, links)
+        self.html.save()
+
+    # losses: same format as |losses| of plot_current_losses
+    def print_current_losses(self, epoch, iters, losses, t_comp, t_data):
+        """print current losses on console; also save the losses to the disk
+
+        Parameters:
+            epoch (int) -- current epoch
+            iters (int) -- current training iteration during this epoch (reset to 0 at the end of every epoch)
+            losses (OrderedDict) -- training losses stored in the format of (name, float) pairs
+            t_comp (float) -- computational time per data point (normalized by batch_size)
+            t_data (float) -- data loading time per data point (normalized by batch_size)
+        """
+        message = '(epoch: %d, iters: %d, time: %.3f, data: %.3f) ' % (epoch, iters, t_comp, t_data)
+        for k, v in losses.items():
+            message += '%s: %.3f ' % (k, v)
+
+        print(message)  # print the message
+        with open(self.log_name, "a") as log_file:
+            log_file.write('%s\n' % message)  # save the message        

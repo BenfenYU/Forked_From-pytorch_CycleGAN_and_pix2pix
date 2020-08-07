@@ -60,6 +60,7 @@ class HTML:
                 for im, txt, link in zip(ims, txts, links):
                     with td(style="word-wrap: break-word;", halign="center", valign="top"):
                         with p():
+                            #href = link if links.index(link) == 0 else os.path.join('images', link)
                             with a(href=os.path.join('images', link)):
                                 img(style="width:%dpx" % width, src=os.path.join('images', im))
                             br()

@@ -11,7 +11,7 @@
             "request": "launch",
             "program": "train.py",
             "console": "integratedTerminal",
-            "args": ["--gpu_ids","0","--no_dropout"  ,"--no_flip","--preprocess", "resize","--save_epoch_freq","10","--n_epochs_decay","50","--n_epochs","50","--batch_size","4","--num_threads","4"]
+            "args": []
         }
     ]
 }
