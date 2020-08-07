@@ -25,7 +25,7 @@ from models import create_model
 from util.visualizer import Visualizer
 from torch.utils.tensorboard import SummaryWriter
 
-"--gpu_ids   0   --no_dropout     --no_flip   --preprocess    resize   --save_epoch_freq   50   --n_epochs_decay   100   --n_epochs   100   --batch_size   8   --num_threads   4 --max_dataset_size 1000000"
+"--gpu_ids 7 --no_dropout --no_flip --preprocess resize_and_crop --load_size 256 --crop_size 128 --save_epoch_freq 50 --n_epochs_decay 100 --n_epochs 100 --batch_size 8 --num_threads 4 --max_dataset_size 1000000"
 
 if __name__ == '__main__':
     opt = TrainOptions().parse()   # get training options
