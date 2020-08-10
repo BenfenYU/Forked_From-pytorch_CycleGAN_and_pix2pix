@@ -9,7 +9,7 @@
             "name": "Python: train.py",
             "type": "python",
             "request": "launch",
-            "program": "train.py",
+            "program": "test.py",
             "console": "integratedTerminal",
             "args": []
         }

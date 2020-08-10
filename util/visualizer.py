@@ -2,7 +2,7 @@ import numpy as np
 import os,torchvision
 import sys
 import ntpath
-import time
+import time, shutil
 from . import util, html
 from subprocess import Popen, PIPE
 from .html import HTML
@@ -33,10 +33,6 @@ def save_images(webpage, visuals, image_path, aspect_ratio=1.0, width=256):
 
     webpage.add_header(name)
     ims, txts, links = [], [], []
-    # 添加目标图片（灰度图）
-    ims.append(os.path.join('testB',number + '.jpg'))
-    txts.append('source')
-    links.append(os.path.join('testB',number + '.jpg'))
 
     for label, im_data in visuals.items():
         im = util.tensor2im(im_data)

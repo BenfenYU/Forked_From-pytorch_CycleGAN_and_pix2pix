@@ -35,6 +35,9 @@ from util import html
 
 
 if __name__ == '__main__':
+
+    '''python test.py --preprocess none'''
+
     opt = TestOptions().parse()  # get test options
     # hard-code some parameters for test
     opt.num_threads = 0   # test code only supports num_threads = 1
