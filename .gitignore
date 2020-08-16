@@ -43,3 +43,5 @@ test/data/legacy_serialized.pt
 results/
 docs
 run_server.sh
+/runs/
+runs/
