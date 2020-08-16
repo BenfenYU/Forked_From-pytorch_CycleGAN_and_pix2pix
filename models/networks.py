@@ -309,7 +309,7 @@ class Perceptual_VGG16_Loss(nn.Module):
         style_loss = 0.
         for ft_y, gm_s in zip(y_features, gram_style):
             gm_y = self.gram_matrix(ft_y)
-            style_loss += mse_loss(gm_y, gm_s)
+            style_loss += self.mse_loss(gm_y, gm_s)
         self.style_loss = style_loss
 
         return self.content_loss,self.style_loss
