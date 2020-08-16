@@ -3,6 +3,10 @@ import torch.nn as nn
 from torch.nn import init
 import functools
 from torch.optim import lr_scheduler
+from collections import namedtuple
+from torchvision import models
+
+
 
 
 ###############################################################################
@@ -274,6 +278,62 @@ class GANLoss(nn.Module):
                 loss = prediction.mean()
         return loss
 
+class Perceptual_VGG16_Loss(nn.Module):
+    def __init__(self, requires_grad=False):
+        super(Perceptual_VGG16_Loss, self).__init__()
+        vgg_pretrained_features = models.vgg16(pretrained=True).features
+        self.slice1 = torch.nn.Sequential()
+        self.slice2 = torch.nn.Sequential()
+        self.slice3 = torch.nn.Sequential()
+        self.slice4 = torch.nn.Sequential()
+        for x in range(4):
+            self.slice1.add_module(str(x), vgg_pretrained_features[x])
+        for x in range(4, 9):
+            self.slice2.add_module(str(x), vgg_pretrained_features[x])
+        for x in range(9, 16):
+            self.slice3.add_module(str(x), vgg_pretrained_features[x])
+        for x in range(16, 23):
+            self.slice4.add_module(str(x), vgg_pretrained_features[x])
+        if not requires_grad:
+            for param in self.parameters():
+                param.requires_grad = False
+        
+        self.mse_loss = torch.nn.MSELoss()
+
+    def forward(self, x_in,x_out,x_target):
+        y_features = self.pass_vgg(x_out)
+        self.content_loss = self.mse_loss(y_features.relu2_2, self.pass_vgg(x_in).relu2_2)
+        
+        features_style = self.pass_vgg(x_target)
+        gram_style = [self.gram_matrix(t) for t in features_style]
+        style_loss = 0.
+        for ft_y, gm_s in zip(y_features, gram_style):
+            gm_y = self.gram_matrix(ft_y)
+            style_loss += mse_loss(gm_y, gm_s)
+        self.style_loss = style_loss
+
+        return self.content_loss,self.style_loss
+    
+    def pass_vgg(self,x):
+        h = self.slice1(X)
+        h_relu1_2 = h
+        h = self.slice2(h)
+        h_relu2_2 = h
+        h = self.slice3(h)
+        h_relu3_3 = h
+        h = self.slice4(h)
+        h_relu4_3 = h
+        vgg_outputs = namedtuple("VggOutputs", ['relu1_2', 'relu2_2', 'relu3_3', 'relu4_3'])
+        out = vgg_outputs(h_relu1_2, h_relu2_2, h_relu3_3, h_relu4_3)
+        return out    
+
+    def gram_matrix(self,y):
+        (b, ch, h, w) = y.size()
+        features = y.view(b, ch, w * h)
+        features_t = features.transpose(1, 2)
+        gram = features.bmm(features_t) / (ch * h * w)
+        
+        return gram
 
 def cal_gradient_penalty(netD, real_data, fake_data, device, type='mixed', constant=1.0, lambda_gp=10.0):
     """Calculate the gradient penalty loss, used in WGAN-GP paper https://arxiv.org/abs/1704.00028
