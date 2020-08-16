@@ -314,7 +314,7 @@ class Perceptual_VGG16_Loss(nn.Module):
 
         return self.content_loss,self.style_loss
     
-    def pass_vgg(self,x):
+    def pass_vgg(self,X):
         h = self.slice1(X)
         h_relu1_2 = h
         h = self.slice2(h)
