@@ -130,7 +130,10 @@ class BaseModel(ABC):
         visual_ret = OrderedDict()
         for name in self.visual_names:
             if isinstance(name, str):
-                visual_ret[name] = getattr(self, name)
+                if self.opt.batch_size > 1:
+                    visual_ret[name] = torch.unsqueeze(getattr(self, name)[0] , 0)
+                else:
+                    visual_ret[name] = getattr(self, name)
         return visual_ret
 
     def get_current_losses(self):
@@ -138,7 +141,7 @@ class BaseModel(ABC):
         errors_ret = OrderedDict()
         for name in self.loss_names:
             if isinstance(name, str):
-                errors_ret[name] = float(getattr(self, 'loss_' + name))  # float(...) works for both scalar tensor and float number
+                errors_ret[name] = float(getattr(self, 'loss_' + name)) / self.opt.batch_size # float(...) works for both scalar tensor and float number
         return errors_ret
 
     def save_networks(self, epoch):
