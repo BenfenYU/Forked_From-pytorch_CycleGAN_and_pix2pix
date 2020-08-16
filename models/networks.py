@@ -580,8 +580,8 @@ class NLayerDiscriminator(nn.Module):
 
     def forward(self, input):
         """Standard forward."""
-        print(self.model(input).shape)
-        print(self.model(input))
+        #print(self.model(input).shape)
+        #print(self.model(input))
         return self.model(input)
 
     def __call__(self, *input, **kwargs):
