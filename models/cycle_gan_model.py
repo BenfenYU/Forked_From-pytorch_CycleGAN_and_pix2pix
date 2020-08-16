@@ -43,6 +43,7 @@ class CycleGANModel(BaseModel):
             parser.add_argument('--lambda_G_A', type=float, default=1.0, help='weight for G loss (A -> B -> A)')
             parser.add_argument('--lambda_G_B', type=float, default=1.0, help='weight for G loss (B -> A -> B)')
             parser.add_argument('--lambda_identity', type=float, default= -1, help='use identity mapping. Setting lambda_identity other than 0 has an effect of scaling the weight of the identity mapping loss. For example, if the weight of the identity loss should be 10 times smaller than the weight of the reconstruction loss, please set lambda_identity = 0.1')
+            parser.add_argument('--lambda_p', type=float, default=1.0, help='weight for perceptual loss')
 
         return parser
 
@@ -54,13 +55,18 @@ class CycleGANModel(BaseModel):
         """
         BaseModel.__init__(self, opt)
         # specify the training losses you want to print out. The training/test scripts will call <BaseModel.get_current_losses>
-        self.loss_names = ['D_A', 'G_A', 'cycle_A', 'idt_A', 'D_B', 'G_B', 'cycle_B', 'idt_B']
+        self.loss_names = ['D_A', 'G_A', 'cycle_A', 'idt_A', 'D_B', 'G_B', 'cycle_B', 'idt_B','style_A','style_B','content_A','content_B']
         # specify the images you want to save/display. The training/test scripts will call <BaseModel.get_current_visuals>
         visual_names_A = ['real_A', 'fake_B', 'rec_A']
         visual_names_B = ['real_B', 'fake_A', 'rec_B']
         if self.isTrain and self.opt.lambda_identity > 0.0:  # if identity loss is used, we also visualize idt_B=G_A(B) ad idt_A=G_A(B)
             visual_names_A.append('idt_B')
             visual_names_B.append('idt_A')
+        if self.isTrain and self.opt.lambda_p > 0.0:  # if identity loss is used, we also visualize idt_B=G_A(B) ad idt_A=G_A(B)
+            visual_names_A.append('style_A')
+            visual_names_B.append('style_B') 
+            visual_names_A.append('content_A')
+            visual_names_B.append('content_B') 
 
         self.visual_names = visual_names_A + visual_names_B  # combine visualizations for A and B
         # specify the models you want to save to the disk. The training/test scripts will call <BaseModel.save_networks> and <BaseModel.load_networks>.
@@ -94,6 +100,7 @@ class CycleGANModel(BaseModel):
             self.criterionGAN = networks.GANLoss(opt.gan_mode).to(self.device)  # define GAN loss.
             self.criterionCycle = torch.nn.L1Loss()
             self.criterionIdt = torch.nn.L1Loss()
+            self.criterionPerceptual = networks.Perceptual_VGG16_Loss()
             # initialize optimizers; schedulers will be automatically created by function <BaseModel.setup>.
             self.optimizer_G = torch.optim.Adam(itertools.chain(self.netG_A.parameters(), self.netG_B.parameters()), lr=opt.lr, betas=(opt.beta1, 0.999))
             self.optimizer_D = torch.optim.Adam(itertools.chain(self.netD_A.parameters(), self.netD_B.parameters()), lr=opt.lr, betas=(opt.beta1, 0.999))
@@ -162,6 +169,7 @@ class CycleGANModel(BaseModel):
         lambda_B = self.opt.lambda_B
         lambda_G_A = self.opt.lambda_G_A
         lambda_G_B = self.opt.lambda_G_B
+        lambda_p = self.opt.lambda_p
 
         # Identity loss
         if lambda_idt > 0:
@@ -174,6 +182,13 @@ class CycleGANModel(BaseModel):
         else:
             self.loss_idt_A = 0
             self.loss_idt_B = 0
+        
+        if lambda_p > 0:
+            self.loss_content_A,self.loss_style_A = self.criterionPerceptual(self.real_A,self.fake_B,self.real_B)
+            self.loss_content_B,self.loss_style_B = self.criterionPerceptual(self.real_B,self.fake_A,self.real_A)
+        else:
+            self.loss_content_A,self.loss_style_A = 0
+            self.loss_content_B,self.loss_style_B = 0
 
         # GAN loss D_A(G_A(A))
         self.loss_G_A = self.criterionGAN(self.netD_A(self.fake_B), True) * lambda_G_A
@@ -184,7 +199,8 @@ class CycleGANModel(BaseModel):
         # Backward cycle loss || G_A(G_B(B)) - B||
         self.loss_cycle_B = self.criterionCycle(self.rec_B, self.real_B) * lambda_B
         # combined loss and calculate gradients
-        self.loss_G = self.loss_G_A + self.loss_G_B + self.loss_cycle_A + self.loss_cycle_B + self.loss_idt_A + self.loss_idt_B
+        self.loss_G = self.loss_G_A + self.loss_G_B + self.loss_cycle_A + self.loss_cycle_B + self.loss_idt_A + self.loss_idt_B + \
+                         self.loss_content_A+self.loss_style_A + self.loss_content_B+self.loss_style_B
         self.loss_G.backward()
 
     def optimize_parameters(self):
