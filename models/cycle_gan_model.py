@@ -43,7 +43,8 @@ class CycleGANModel(BaseModel):
             parser.add_argument('--lambda_G_A', type=float, default=1.0, help='weight for G loss (A -> B -> A)')
             parser.add_argument('--lambda_G_B', type=float, default=1.0, help='weight for G loss (B -> A -> B)')
             parser.add_argument('--lambda_identity', type=float, default= -1, help='use identity mapping. Setting lambda_identity other than 0 has an effect of scaling the weight of the identity mapping loss. For example, if the weight of the identity loss should be 10 times smaller than the weight of the reconstruction loss, please set lambda_identity = 0.1')
-            parser.add_argument('--lambda_p', type=float, default=1.0, help='weight for perceptual loss')
+            parser.add_argument('--lambda_style', type=float, default=1.0, help='weight for perceptual loss')
+            parser.add_argument('--lambda_content', type=float, default=1.0, help='weight for perceptual loss')
 
         return parser
 
@@ -62,7 +63,7 @@ class CycleGANModel(BaseModel):
         if self.isTrain and self.opt.lambda_identity > 0.0:  # if identity loss is used, we also visualize idt_B=G_A(B) ad idt_A=G_A(B)
             visual_names_A.append('idt_B')
             visual_names_B.append('idt_A')
-        if self.isTrain and self.opt.lambda_p > 0.0:  # if identity loss is used, we also visualize idt_B=G_A(B) ad idt_A=G_A(B)
+        if self.isTrain and self.opt.lambda_style > 0.0:  # if identity loss is used, we also visualize idt_B=G_A(B) ad idt_A=G_A(B)
             visual_names_A.append('style_A')
             visual_names_B.append('style_B') 
             visual_names_A.append('content_A')
@@ -169,7 +170,8 @@ class CycleGANModel(BaseModel):
         lambda_B = self.opt.lambda_B
         lambda_G_A = self.opt.lambda_G_A
         lambda_G_B = self.opt.lambda_G_B
-        lambda_p = self.opt.lambda_p
+        lambda_style = self.opt.lambda_style
+        lambda_content = self.opt.lambda_content
 
         # Identity loss
         if lambda_idt > 0:
@@ -183,12 +185,12 @@ class CycleGANModel(BaseModel):
             self.loss_idt_A = 0
             self.loss_idt_B = 0
         
-        if lambda_p > 0:
+        if lambda_style > 0 or lambda_content > 0:
             self.loss_content_A,self.loss_style_A = self.criterionPerceptual(self.real_A,self.fake_B,self.real_B)
             self.loss_content_B,self.loss_style_B = self.criterionPerceptual(self.real_B,self.fake_A,self.real_A)
         else:
-            self.loss_content_A,self.loss_style_A = 0
-            self.loss_content_B,self.loss_style_B = 0
+            self.loss_content_A,self.loss_style_A = 0,0
+            self.loss_content_B,self.loss_style_B = 0,0
 
         # GAN loss D_A(G_A(A))
         self.loss_G_A = self.criterionGAN(self.netD_A(self.fake_B), True) * lambda_G_A
@@ -200,7 +202,7 @@ class CycleGANModel(BaseModel):
         self.loss_cycle_B = self.criterionCycle(self.rec_B, self.real_B) * lambda_B
         # combined loss and calculate gradients
         self.loss_G = self.loss_G_A + self.loss_G_B + self.loss_cycle_A + self.loss_cycle_B + self.loss_idt_A + self.loss_idt_B + \
-                         self.loss_content_A+self.loss_style_A + self.loss_content_B+self.loss_style_B
+                        (self.loss_content_A + self.loss_content_B) * lambda_content + (self.loss_style_A + self.loss_style_B) * lambda_style
         self.loss_G.backward()
 
     def optimize_parameters(self):
