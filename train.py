@@ -25,7 +25,9 @@ from models import create_model
 from util.visualizer import Visualizer
 from torch.utils.tensorboard import SummaryWriter
 
-"python train.py --gpu_ids 3 --no_dropout --no_flip --preprocess resize_and_crop --load_size 128 --crop_size 128  --save_epoch_freq 50 --n_epochs_decay 100 --n_epochs 100 --batch_size 1 --num_threads 4 --max_dataset_size 1000000 --gan_mode lsgan --lr 0.0001 --lambda_identity 1"
+"python train.py --dataroot /data/dataset/yujingbo/cycle_gan_sketch_no_background --gpu_ids 6 --no_dropout --no_flip --preprocess resize_and_crop --load_size 128 --crop_size 128  --save_epoch_freq 50 --n_epochs_decay 100 --n_epochs 100 --batch_size 1 --num_threads 4 --max_dataset_size 1000000 --gan_mode lsgan --lr 0.0001 --lambda_identity 1"
+"python train.py --dataroot /data/dataset/yujingbo/cycle_gan_sketch_no_hair_but_edge --gpu_ids 6 --no_dropout --no_flip --preprocess resize_and_crop --load_size 128 --crop_size 128  --save_epoch_freq 50 --n_epochs_decay 100 --n_epochs 100 --batch_size 1 --num_threads 4 --max_dataset_size 1000000 --gan_mode lsgan --lr 0.0001 --lambda_identity 1"
+
 
 if __name__ == '__main__':
     opt = TrainOptions().parse()   # get training options
