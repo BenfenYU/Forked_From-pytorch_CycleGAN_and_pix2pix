@@ -20,5 +20,6 @@ def zip_display_in_train():
         for filename in filenames:
             f.write(os.path.join(dirpath,filename))
     f.close()
+    shutil.rmtree('./display_in_train')
 
 zip_display_in_train()
